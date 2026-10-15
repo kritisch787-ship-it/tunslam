@@ -15,8 +15,7 @@ jobs:
           distribution: microsoft
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 9.5.1
-          build-root-directory: stunslam-github
+          gradle-version: 9.7.0
       - name: Mod bauen
         run: gradle build
       - uses: actions/upload-artifact@v4
