@@ -7,15 +7,12 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * Stun Slam per Tastendruck (Standard: Mausrad druecken).
@@ -38,6 +35,9 @@ public class StunSlamClient implements ClientModInitializer {
     private static final int TICKS_WECHSEL_BIS_MACE = 2;
     // ================================================================
 
+    // Mausrad-Taste (GLFW_MOUSE_BUTTON_MIDDLE = 2)
+    private static final int MOUSE_MIDDLE = 2;
+
     private static KeyMapping slamKey;
 
     // 0 = bereit, 1 = warte auf Wechsel zum Mace, 2 = warte auf Mace-Schlag
@@ -55,7 +55,7 @@ public class StunSlamClient implements ClientModInitializer {
         slamKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.stunslam.slam",
                 InputConstants.Type.MOUSE,
-                GLFW.GLFW_MOUSE_BUTTON_MIDDLE,
+                MOUSE_MIDDLE,
                 category));
 
         ClientTickEvents.END_CLIENT_TICK.register(StunSlamClient::tick);
@@ -98,7 +98,6 @@ public class StunSlamClient implements ClientModInitializer {
             if (TICKS_WECHSEL_BIS_MACE <= 0) {
                 // Mace-Schlag direkt im selben Tick wie der Wechsel
                 mc.gameMode.attack(player, target);
-                player.swing(InteractionHand.MAIN_HAND);
                 finish(player);
             } else {
                 stage = 2;
@@ -107,21 +106,18 @@ public class StunSlamClient implements ClientModInitializer {
         } else if (stage == 2) {
             // Mace-Schlag
             mc.gameMode.attack(player, target);
-            player.swing(InteractionHand.MAIN_HAND);
             finish(player);
         }
     }
 
     private static void start(Minecraft mc, LocalPlayer player) {
         if (!player.getMainHandItem().is(ItemTags.AXES)) {
-            hint(player, "Stun Slam: Du musst eine Axt in der Hand halten.");
-            return;
+            return; // keine Axt in der Hand
         }
 
         if (!(mc.hitResult instanceof EntityHitResult hit)
                 || !(hit.getEntity() instanceof Player enemy)) {
-            hint(player, "Stun Slam: Kein Spieler anvisiert.");
-            return;
+            return; // kein Spieler anvisiert
         }
 
         int foundMace = -1;
@@ -132,8 +128,7 @@ public class StunSlamClient implements ClientModInitializer {
             }
         }
         if (foundMace == -1) {
-            hint(player, "Stun Slam: Kein Mace in der Hotbar.");
-            return;
+            return; // kein Mace in der Hotbar
         }
 
         axeSlot = player.getInventory().getSelectedSlot();
@@ -142,7 +137,6 @@ public class StunSlamClient implements ClientModInitializer {
 
         // Schritt 1: Axt-Schlag
         mc.gameMode.attack(player, target);
-        player.swing(InteractionHand.MAIN_HAND);
 
         stage = 1;
         timer = TICKS_AXT_BIS_WECHSEL;
@@ -152,9 +146,5 @@ public class StunSlamClient implements ClientModInitializer {
         player.getInventory().setSelectedSlot(axeSlot);
         stage = 0;
         target = null;
-    }
-
-    private static void hint(LocalPlayer player, String text) {
-        player.displayClientMessage(Component.literal(text), true);
     }
 }
