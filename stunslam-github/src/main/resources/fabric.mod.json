@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "stunslam",
+	"version": "${version}",
+	"name": "Stun Slam",
+	"description": "Fuehrt per Tastendruck (Mausrad) einen Stun Slam aus: Axt-Schlag, dann Mace-Schlag.",
+	"authors": ["Ich"],
+	"license": "All-Rights-Reserved",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"stunslam.StunSlamClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
